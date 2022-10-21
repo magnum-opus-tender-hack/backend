@@ -2,8 +2,8 @@ from django.db import models
 
 
 class Characteristic(models.Model):
-    name = models.CharField("Имя", unique=True, blank=False, max_length=250)
-    value = models.CharField("Значение", blank=False, max_length=250)
+    name = models.CharField("Имя", blank=False, max_length=1000)
+    value = models.CharField("Значение", blank=False, max_length=1000)
 
     def __str__(self):
         return str(self.name)
@@ -16,9 +16,9 @@ class Characteristic(models.Model):
 
 
 class UnitCharacteristic(models.Model):
-    name = models.CharField("Имя", blank=False, max_length=250)
-    value = models.CharField("Значение", blank=False, max_length=250)
-    unit = models.CharField("Размерность", blank=False, max_length=250)
+    name = models.CharField("Имя", blank=False, max_length=1000)
+    value = models.CharField("Значение", blank=False, max_length=1000)
+    unit = models.CharField("Размерность", blank=False, max_length=1000)
 
     def __str__(self):
         return str(self.name)
@@ -31,7 +31,7 @@ class UnitCharacteristic(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField("Имя", unique=True, blank=False, max_length=250)
+    name = models.CharField("Имя", unique=True, blank=False, max_length=1000)
 
     def __str__(self):
         return str(self.name)
@@ -44,7 +44,7 @@ class Product(models.Model):
     id = models.IntegerField(
         "ID CTE", primary_key=True, unique=True, blank=False, null=False, db_index=True
     )
-    name = models.CharField("Название CTE", unique=True, blank=False, max_length=250)
+    name = models.CharField("Название CTE", unique=True, blank=False, max_length=1000)
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )
