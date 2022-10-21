@@ -19,3 +19,15 @@ class ResponseSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError
+
+
+class HintRequestSerializer(serializers.Serializer):
+    content = serializers.CharField()
+
+    def create(self, validated_data):
+        raise NotImplemented
+
+
+class HintResponseSerializer(serializers.Serializer):
+    type = serializers.CharField()
+    content = serializers.CharField()
