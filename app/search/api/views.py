@@ -1,0 +1,20 @@
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from search.api.serializers import SearchSerializer, ResponseSerializer
+from search.services.search import process_string
+
+user_response = openapi.Response("search results", ResponseSerializer)
+
+
+class SearchApi(APIView):
+    @swagger_auto_schema(request_body=SearchSerializer, responses={200: user_response})
+    def post(self, request, format=None):
+        serializer = SearchSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response(
+            process_string(serializer.data["body"]), status=status.HTTP_200_OK
+        )

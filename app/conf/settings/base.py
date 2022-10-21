@@ -31,7 +31,7 @@ USE_L10N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
-LOCALE_PATHS = [str(ROOT_DIR / "locale")]
+LOCALE_PATHS = [str(APPS_DIR / "locale")]
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # URLS
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
-ROOT_URLCONF = "app.conf.urls"
+ROOT_URLCONF = "conf.urls"
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = "conf.wsgi.application"
 
@@ -63,7 +63,7 @@ DJANGO_APPS = [
 ]
 THIRD_PARTY_APPS = ["rest_framework", "corsheaders", "drf_yasg"]
 
-LOCAL_APPS = []
+LOCAL_APPS = ["search"]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -200,8 +200,6 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_TIME_LIMIT = 5 * 60
 # https://docs.celeryq.dev/en/stable/userguide/configuration.html#task-soft-time-limit
 CELERY_TASK_SOFT_TIME_LIMIT = 60
-# https://docs.celeryq.dev/en/stable/userguide/configuration.html#beat-scheduler
-CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 
 
 # django-rest-framework
