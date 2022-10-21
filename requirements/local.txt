@@ -1,0 +1,9 @@
+-r base.txt
+
+pylint
+mypy
+ipython
+
+# for exel loading
+pandas
+openpyxl
