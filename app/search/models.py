@@ -18,13 +18,14 @@ class Characteristic(models.Model):
 class UnitCharacteristic(models.Model):
     name = models.TextField("Имя", blank=False)
     value = models.TextField("Значение", blank=False)
+    numeric_value = models.IntegerField(default=0)
     unit = models.TextField("Размерность", blank=False)
 
     def __str__(self):
         return str(self.name)
 
     def serialize_self(self):
-        return {"name": self.name, "value": self.value, "unit": self.unit}
+        return {"name": self.name, "value": self.numeric_value, "unit": self.unit}
 
     class Meta:
         db_table = "unit_characteristic"

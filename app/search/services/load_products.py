@@ -1,3 +1,4 @@
+import re
 from ast import literal_eval
 
 import pandas as pd
@@ -59,3 +60,16 @@ def load_excel():
             # malformed node or string: nan \ duplicate key
             print("СКОРОСШИВАТЕЛЬ")
             continue
+
+
+def process_unit_character():
+    for el in UnitCharacteristic.objects.all():
+        nums = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", el.value)
+        if len(nums) != 1:
+            el.delete()
+        else:
+            try:
+                el.numeric_value = int(float(nums[0].replace(",", ".")))
+                el.save()
+            except ValueError:
+                el.delete()

@@ -27,8 +27,8 @@ def autocomplete_schema(val: str):
     schema.extend(
         [
             {
-                "coordinate": char.name.index(val),
-                "value": {"type": char.name, "value": char.value},
+                "coordinate": char["name"].index(val),
+                "value": {"type": char["name"], "value": char["value"]},
             }
             for char in Characteristic.objects.filter(name__contains=val).values(
                 "name", "value"
