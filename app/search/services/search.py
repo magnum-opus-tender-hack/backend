@@ -123,4 +123,4 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 qs = qs.filter(unit_characteristics__in=val)
             else:
                 qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs[offset : offset + limit]]
+    return [x.serialize_self() for x in qs[offset:offset+limit]]

@@ -30,7 +30,12 @@ class SearchApi(APIView):
         serializer = SearchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(
-            process_search(serializer.data["body"]), status=status.HTTP_200_OK
+            process_search(
+                serializer.data["body"],
+                serializer.data["limit"],
+                serializer.data["offset"],
+            ),
+            status=status.HTTP_200_OK,
         )
 
 
