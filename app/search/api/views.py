@@ -64,6 +64,6 @@ class AutoCompleteApi(APIView):
         serializer = AutoCompleteRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(
-            {"nodes": autocomplete_schema(serializer.data["content"])},
+            {"nodes": autocomplete_schema(serializer.data["content"], serializer.data["exclude"])},
             status=status.HTTP_200_OK,
         )
