@@ -1,6 +1,10 @@
 import requests as r
+from spellchecker import SpellChecker
 
+speller = SpellChecker(language='ru')
 
 def spell_check(word: str) -> str:
-    res = r.get(f'https://speller.yandex.net/services/spellservice.json/checkText?text={word}')
-    return res.json()[0]['s'][0]
+    res = speller.correction(word)
+    if not len(res): 
+        return word
+    return res

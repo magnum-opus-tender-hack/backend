@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 import environ
 
@@ -38,6 +39,8 @@ LOCALE_PATHS = [str(APPS_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
+YANDEX_DICT_API_KEY = env.str('YANDEX_DICT')
+
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
