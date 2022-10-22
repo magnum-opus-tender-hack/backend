@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from search.models import Product, Category, Characteristic
+from search.models import Product, Category, Characteristic, UnitCharacteristic
 
 
 def autocomplete_schema(val: str, exclude: List[Dict]):
@@ -44,6 +44,17 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
             for char in Characteristic.objects.filter(value__unaccent__icontains=val)[
                 :20
             ].values("name", "value")
+        ]
+    )
+    schema.extend(
+        [
+            {
+                "coordinate": char["value"].lower().index(val.lower()),
+                "value": {
+                    "type": char["name"] + "_numeric",
+                    "value": char["value"]
+                }
+            } for char in UnitCharacteristic.objects.filter(value__unaccent__icontains=val)[:20].values("name", "value")
         ]
     )
     return schema
