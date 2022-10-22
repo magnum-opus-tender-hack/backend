@@ -2,6 +2,8 @@ app/media/
 app/static/
 .idea/
 
+product_100_000.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
