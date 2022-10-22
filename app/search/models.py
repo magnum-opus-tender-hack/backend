@@ -2,8 +2,8 @@ from django.db import models
 
 
 class Characteristic(models.Model):
-    name = models.CharField("Имя", unique=True, blank=False, max_length=250)
-    value = models.CharField("Значение", blank=False, max_length=250)
+    name = models.TextField("Имя", blank=False)
+    value = models.TextField("Значение", blank=False)
 
     def __str__(self):
         return str(self.name)
@@ -12,13 +12,13 @@ class Characteristic(models.Model):
         return {"name": self.name, "value": self.value}
 
     class Meta:
-        db_table = "Characteristic"
+        db_table = "characteristic"
 
 
 class UnitCharacteristic(models.Model):
-    name = models.CharField("Имя", blank=False, max_length=250)
-    value = models.CharField("Значение", blank=False, max_length=250)
-    unit = models.CharField("Размерность", blank=False, max_length=250)
+    name = models.TextField("Имя", blank=False)
+    value = models.TextField("Значение", blank=False)
+    unit = models.TextField("Размерность", blank=False)
 
     def __str__(self):
         return str(self.name)
@@ -27,24 +27,24 @@ class UnitCharacteristic(models.Model):
         return {"name": self.name, "value": self.value, "unit": self.unit}
 
     class Meta:
-        db_table = "UnitCharacteristic"
+        db_table = "unit_characteristic"
 
 
 class Category(models.Model):
-    name = models.CharField("Имя", unique=True, blank=False, max_length=250)
+    name = models.TextField("Имя", unique=True, blank=False)
 
     def __str__(self):
         return str(self.name)
 
     class Meta:
-        db_table = "Category"
+        db_table = "category"
 
 
 class Product(models.Model):
     id = models.IntegerField(
         "ID CTE", primary_key=True, unique=True, blank=False, null=False, db_index=True
     )
-    name = models.CharField("Название CTE", unique=True, blank=False, max_length=250)
+    name = models.TextField("Название CTE", unique=True, blank=False)
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )
@@ -62,7 +62,7 @@ class Product(models.Model):
         }
 
     class Meta:
-        db_table = "Product"
+        db_table = "product"
 
 
 class ProductCharacteristic(models.Model):
@@ -77,7 +77,7 @@ class ProductCharacteristic(models.Model):
         return f"{self.product} in {self.characteristic}"
 
     class Meta:
-        db_table = "ProductCharacteristic"
+        db_table = "product_characteristic"
 
 
 class ProductUnitCharacteristic(models.Model):
@@ -92,4 +92,4 @@ class ProductUnitCharacteristic(models.Model):
         return f"{self.product} in {self.characteristic}"
 
     class Meta:
-        db_table = "ProductUnitCharacteristic"
+        db_table = "product_unit_characteristic"
