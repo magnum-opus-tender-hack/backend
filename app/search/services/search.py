@@ -28,7 +28,7 @@ def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: s
     return unit
 
 
-def process_search(data: List[dict], limit=10, offset=0) -> List[dict]:
+def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
     prep_data = []
     prep_dict = {}
     prep_dict_char_type = {}
@@ -90,9 +90,9 @@ def process_search(data: List[dict], limit=10, offset=0) -> List[dict]:
                         characteristic__in=prep_dict_char_type[x["type"]],
                         characteristic__value__unaccent__trigram_similar=val,
                     )
-    # ----------------------------------- apply filters on QuerySet -------------------------------------------------- #
     for el, val in prep_dict.items():
         prep_data.append({"type": el, "value": val})
+    # ----------------------------------- apply filters on QuerySet -------------------------------------------------- #
     qs = Product.objects.filter()
     for x in prep_data:
         typ = x["type"]
@@ -102,7 +102,21 @@ def process_search(data: List[dict], limit=10, offset=0) -> List[dict]:
         elif typ == "Category":
             qs = qs.filter(category__name__unaccent__trigram_similar=val)
         elif typ == "Unknown":
-            # add translate
+            if val[0] in string.printable:
+                val = "".join(translate_en_ru(val))
+            else:
+                val = "".join(translate_ru_en(val))
+            type = get_hints(val)
+            if type == "Name":
+                qs = qs.filter(name__unaccent__trigram_similar=val)
+            elif type == "Category":
+                qs = qs.filter(category__name__unaccent__trigram_similar=val)
+            elif type == "Unknown":
+                continue
+            else:
+                qs = qs.filter(
+                    characteristics__characteristic__name__unaccent__trigram_similar=val
+                )
             continue
         else:
             if typ.startswith("*"):
