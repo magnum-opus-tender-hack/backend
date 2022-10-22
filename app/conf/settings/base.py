@@ -63,6 +63,7 @@ DJANGO_APPS = [
     "django.contrib.humanize",
     "django.contrib.admin",
     "django.forms",
+    "django.contrib.postgres",
 ]
 THIRD_PARTY_APPS = ["rest_framework", "corsheaders", "drf_yasg"]
 
@@ -216,3 +217,5 @@ REST_FRAMEWORK = {
 
 # django-cors-headers
 CORS_ALLOW_ALL_ORIGINS = True
+
+YANDEX_DICT_API_KEY = "dict.1.1.20221022T010312Z.55cce597a6cfa505.f416aba85e7642eedc1b76b8e21c06506fb17f83"

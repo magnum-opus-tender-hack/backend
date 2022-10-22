@@ -18,13 +18,21 @@ class Characteristic(models.Model):
 class UnitCharacteristic(models.Model):
     name = models.TextField("Имя", blank=False)
     value = models.TextField("Значение", blank=False)
+    numeric_value_min = models.IntegerField(default=0)
+    numeric_value_max = models.IntegerField(default=0)
     unit = models.TextField("Размерность", blank=False)
 
     def __str__(self):
         return str(self.name)
 
     def serialize_self(self):
-        return {"name": self.name, "value": self.value, "unit": self.unit}
+        return {
+            "name": self.name,
+            "value": self.numeric_value_min
+            if self.numeric_value_min == self.numeric_value_max
+            else f"{self.numeric_value_min}:{self.numeric_value_max}",
+            "unit": self.unit,
+        }
 
     class Meta:
         db_table = "unit_characteristic"
@@ -49,20 +57,28 @@ class Product(models.Model):
         Category, related_name="products", on_delete=models.CASCADE
     )
 
+    score = models.IntegerField(default=0)
+
     def __str__(self):
         return str(self.name)
 
     def serialize_self(self) -> dict:
         return {
+            "id": self.id,
             "name": self.name,
+            "score": self.score,
             "characteristic": [
-                x.serialize_self() for x in self.characteristics.objects.all()
+                x.characteristic.serialize_self() for x in self.characteristics.all()
             ]
-            + [x.serialize_self() for x in self.unit_characteristics.objects.all()],
+            + [
+                x.characteristic.serialize_self()
+                for x in self.unit_characteristics.all()
+            ],
         }
 
     class Meta:
         db_table = "product"
+        ordering = ["-score"]
 
 
 class ProductCharacteristic(models.Model):
