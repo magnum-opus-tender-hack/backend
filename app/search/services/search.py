@@ -1,11 +1,14 @@
 import string
 
+from django.db.models import QuerySet
+
 from search.models import (
     Product,
     Characteristic,
     ProductCharacteristic,
     ProductUnitCharacteristic,
     UnitCharacteristic,
+    Category,
 )
 from typing import List
 
@@ -39,15 +42,49 @@ def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: s
     return unit
 
 
-def apply_qs_search(qs: Product.objects, text: str):
+def _clean_text(text: str) -> List[str]:
     for st in [".", ",", "!", "?"]:
         text = text.replace(st, " ")
     text = text.split()
+    return text
+
+
+def apply_qs_search(qs: Product.objects, text: str):
+    text = _clean_text(text)
+    words = Product.objects.none()
     for word in text:
-        qs = qs.filter(name__unaccent__trigram_similar=word) | qs.filter(
-            name__unaccent__icontains=word
+        words = (
+            words
+            | Product.objects.filter(name__unaccent__trigram_similar=word)
+            | Product.objects.filter(name__unaccent__icontains=word)
         )
+    print(words)
+    qs = qs | words
+    print(qs)
     return qs
+
+
+def apply_all_qs_search(orig_qs, text: str):
+    # words
+    qs = apply_qs_search(Product.objects.none(), text)
+    text = _clean_text(text)
+
+    # categories
+    cats = Category.objects.none()
+    for word in text:
+        cats = cats | cats.filter(name__icontains=word)
+    qs = qs | Product.objects.filter(category__in=cats)
+
+    # characteristics
+    chars = Characteristic.objects.none()
+    for word in text:
+        chars = chars | chars.filter(
+            value__icontains=word,
+        )
+    qs = qs | Product.objects.filter(characteristics__characteristic__in=chars)
+    # print(qs)
+
+    return qs & orig_qs
 
 
 def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
@@ -57,7 +94,7 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
     # --------------------------------------- prepare filters -------------------------------------------------------- #
     for x in data:
         dat = dict(x)
-        if x["type"] in ["Name", "Category"]:
+        if x["type"] in ["Name", "Category", "Characteristic", "All"]:
             prep_data.append(
                 {
                     "type": dat["type"],
@@ -89,17 +126,22 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                         x["type"]
                     ] | process_unit_operation(unit, x["value"])
                 else:
-                    prep_dict[x["type"]] = prep_dict[
-                        x["type"]
-                    ] | ProductCharacteristic.objects.filter(
-                        characteristic__in=prep_dict_char_type[x["type"]],
-                        characteristic__value__unaccent__trigram_similar=val,
+                    prep_dict[x["type"]] = (
+                        prep_dict[x["type"]]
+                        | ProductCharacteristic.objects.filter(
+                            characteristic__in=prep_dict_char_type[x["type"]],
+                            characteristic__value__unaccent__trigram_similar=val,
+                        )
+                        | ProductCharacteristic.objects.filter(
+                            characteristic__in=prep_dict_char_type[x["type"]],
+                            characteristic__value__icontains=val,
+                        )
                     )
             else:
                 if x["type"].startswith("*"):
                     prep_dict_char_type[x["type"]] = UnitCharacteristic.objects.filter(
                         name__unaccent__trigram_similar=x["type"]
-                    )
+                    ) | UnitCharacteristic.objects.filter(name__icontains=x["type"])
                     unit = ProductUnitCharacteristic.objects.filter(
                         characteristic__in=prep_dict_char_type[x["type"]],
                     )
@@ -107,10 +149,13 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 else:
                     prep_dict_char_type[x["type"]] = Characteristic.objects.filter(
                         name__unaccent__trigram_similar=x["type"]
-                    )
+                    ) | Characteristic.objects.filter(name__icontains=x["type"])
                     prep_dict[x["type"]] = ProductCharacteristic.objects.filter(
                         characteristic__in=prep_dict_char_type[x["type"]],
                         characteristic__value__unaccent__trigram_similar=val,
+                    ) | ProductCharacteristic.objects.filter(
+                        characteristic__in=prep_dict_char_type[x["type"]],
+                        characteristic__value__icontains=val,
                     )
     for el, val in prep_dict.items():
         prep_data.append({"type": el, "value": val})
@@ -121,8 +166,18 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
         val = x["value"]
         if typ == "Name":
             qs = apply_qs_search(qs, val)
+        elif typ == "All":
+            qs = apply_all_qs_search(qs, val)
         elif typ == "Category":
-            qs = qs.filter(category__name__unaccent__trigram_similar=val)
+            qs = qs.filter(category__name__unaccent__trigram_similar=val) | qs.filter(
+                category__name__icontains=val
+            )
+        elif typ == "Characteristic":
+            char = ProductCharacteristic.objects.filter(product__in=qs)
+            char = char.filter(characteristic__value__icontains=val) | char.filter(
+                characteristic__value__unaccent__trigram_similar=val
+            )
+            qs = qs.filter(characteristics__in=char)
         elif typ == "Unknown":
             if val[0] in string.printable:
                 val = "".join(translate_en_ru(val))
@@ -145,4 +200,7 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 qs = qs.filter(unit_characteristics__in=val)
             else:
                 qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs[offset : offset + limit]]
+    return [
+        x.serialize_self()
+        for x in qs.distinct().order_by("-score")[offset : offset + limit]
+    ]

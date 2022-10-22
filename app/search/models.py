@@ -27,7 +27,6 @@ class UnitCharacteristic(models.Model):
 
     def serialize_self(self):
         return {
-            "id": self.id,
             "name": self.name,
             "value": self.numeric_value_min
             if self.numeric_value_min == self.numeric_value_max
