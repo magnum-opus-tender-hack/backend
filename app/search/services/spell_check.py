@@ -1,10 +1,17 @@
 import requests as r
 from spellchecker import SpellChecker
 
-speller = SpellChecker(language='ru')
+speller_ru = SpellChecker(language='ru')
+speller_eng = SpellChecker(language='en')
 
-def spell_check(word: str) -> str:
-    res = speller.correction(word)
+def spell_check_ru(word: str) -> str:
+    res = speller_ru.correction(word)
+    if not len(res): 
+        return word
+    return res
+
+def spell_check_en(word: str) -> str:
+    res = speller_ru.correction(word)
     if not len(res): 
         return word
     return res
