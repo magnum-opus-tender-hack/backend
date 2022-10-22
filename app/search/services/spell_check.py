@@ -11,7 +11,7 @@ def spell_check_ru(word: str) -> str:
     return res
 
 def spell_check_en(word: str) -> str:
-    res = speller_ru.correction(word)
+    res = speller_eng.correction(word)
     if not len(res): 
         return word
     return res
