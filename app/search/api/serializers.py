@@ -58,7 +58,7 @@ class HintResponseSerializer(serializers.Serializer):
 
 class AutoCompleteRequestSerializer(serializers.Serializer):
     content = serializers.CharField(validators=[MinLengthValidator(3)])
-    exclude = serializers.ListSerializer(child=QueryFilterSerializer())
+    exclude = serializers.ListSerializer(child=QueryFilterSerializer(), default=[])
 
     def create(self, validated_data):
         raise NotImplementedError

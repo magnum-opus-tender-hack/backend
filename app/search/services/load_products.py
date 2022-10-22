@@ -64,12 +64,23 @@ def load_excel():
 
 def process_unit_character():
     for el in UnitCharacteristic.objects.all():
-        nums = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", el.value)
-        if len(nums) != 1:
-            el.delete()
-        else:
+        nums = re.findall(
+            "[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", el.value
+        )
+        if len(nums) == 1:
             try:
-                el.numeric_value = int(float(nums[0].replace(",", ".")))
+                el.numeric_value_min = int(float(nums[0].replace(",", ".")))
+                el.numeric_value_max = int(float(nums[0].replace(",", ".")))
+                el.save()
+            except ValueError:
+                el.delete()
+        elif len(nums):
+            try:
+                nums = [int(float(x.replace(",", "."))) for x in nums]
+                min_num = min(nums)
+                max_num = max(nums)
+                el.numeric_value_min = min_num
+                el.numeric_value_max = max_num
                 el.save()
             except ValueError:
                 el.delete()

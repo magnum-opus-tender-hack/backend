@@ -16,15 +16,26 @@ from search.services.translate import translate_en_ru, translate_ru_en
 
 def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: str):
     if operation.startswith("<=") or operation.startswith("=<"):
-        return unit.filter(characteristic__numeric_value__lte=int(float(operation[2:])))
+        return unit.filter(
+            characteristic__numeric_value_max__lte=int(float(operation[2:]))
+        )
     elif operation.startswith("=>") or operation.startswith(">="):
-        return unit.filter(characteristic__numeric_value__gte=int(float(operation[2:])))
+        return unit.filter(
+            characteristic__numeric_value_min__gte=int(float(operation[2:]))
+        )
     elif operation.startswith(">"):
-        return unit.filter(characteristic__numeric_value__gt=int(float(operation[1:])))
+        return unit.filter(
+            characteristic__numeric_value_min__gt=int(float(operation[1:]))
+        )
     elif operation.startswith("<"):
-        return unit.filter(characteristic__numeric_value__lt=int(float(operation[1:])))
+        return unit.filter(
+            characteristic__numeric_value_max__lt=int(float(operation[1:]))
+        )
     elif operation.startswith("="):
-        return unit.filter(characteristic__numeric_value=int(float(operation[1:])))
+        return unit.filter(
+            characteristic__numeric_value_min__gte=int(float(operation[1:])),
+            characteristic__numeric_value_max__lte=int(float(operation[1:])),
+        )
     return unit
 
 
@@ -33,7 +44,9 @@ def apply_qs_search(qs: Product.objects, text: str):
         text = text.replace(st, " ")
     text = text.split()
     for word in text:
-        qs = qs.filter(name__unaccent__trigram_similar=word) | qs.filter(name__unaccent__icontains=word)
+        qs = qs.filter(name__unaccent__trigram_similar=word) | qs.filter(
+            name__unaccent__icontains=word
+        )
     return qs
 
 

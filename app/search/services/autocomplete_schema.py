@@ -18,9 +18,9 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
                         "value": product["name"],
                     },
                 }
-                for product in Product.objects.filter(
-                    name__unaccent__icontains=val
-                ).values("name")
+                for product in Product.objects.filter(name__unaccent__icontains=val)[
+                    :20
+                ].values("name")
             ]
         )
     if not category_exclude:
@@ -30,9 +30,9 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
                     "coordinate": cat["name"].lower().index(val.lower()),
                     "value": {"type": "Category", "value": cat["name"]},
                 }
-                for cat in Category.objects.filter(
-                    name__unaccent__icontains=val
-                ).values("name")
+                for cat in Category.objects.filter(name__unaccent__icontains=val)[
+                    :20
+                ].values("name")
             ]
         )
     schema.extend(
@@ -41,9 +41,9 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
                 "coordinate": char["value"].lower().index(val.lower()),
                 "value": {"type": char["name"], "value": char["value"]},
             }
-            for char in Characteristic.objects.filter(
-                value__unaccent__icontains=val
-            ).values("name", "value")
+            for char in Characteristic.objects.filter(value__unaccent__icontains=val)[
+                :20
+            ].values("name", "value")
         ]
     )
     return schema
