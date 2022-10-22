@@ -39,7 +39,6 @@ LOCALE_PATHS = [str(APPS_DIR / "locale")]
 # https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {"default": env.db("DATABASE_URL")}
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
-YANDEX_DICT_API_KEY = env.str('YANDEX_DICT')
 
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-DEFAULT_AUTO_FIELD
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -217,5 +216,3 @@ REST_FRAMEWORK = {
 
 # django-cors-headers
 CORS_ALLOW_ALL_ORIGINS = True
-
-YANDEX_DICT_API_KEY = "dict.1.1.20221022T010312Z.55cce597a6cfa505.f416aba85e7642eedc1b76b8e21c06506fb17f83"

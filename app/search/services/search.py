@@ -13,8 +13,7 @@ from search.models import (
 from typing import List
 
 from search.services.hints import get_hints
-from search.services.spell_check import spell_check
-from search.services.translate import translate_en_ru, translate_ru_en
+from search.services.spell_check import spell_check_ru as spell_check
 
 
 def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: str):
@@ -179,21 +178,6 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
             )
             qs = qs.filter(characteristics__in=char)
         elif typ == "Unknown":
-            if val[0] in string.printable:
-                val = "".join(translate_en_ru(val))
-            else:
-                val = "".join(translate_ru_en(val))
-            type = get_hints(val)
-            if type == "Name":
-                qs = apply_qs_search(qs, val)
-            elif type == "Category":
-                qs = qs.filter(category__name__unaccent__trigram_similar=val)
-            elif type == "Unknown":
-                continue
-            else:
-                qs = qs.filter(
-                    characteristics__characteristic__name__unaccent__trigram_similar=val
-                )
             continue
         else:
             if typ.startswith("*"):
