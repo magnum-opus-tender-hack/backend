@@ -16,15 +16,15 @@ from search.services.translate import translate_en_ru, translate_ru_en
 
 def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: str):
     if operation.startswith("<=") or operation.startswith("=<"):
-        return unit.filter(characteristic__numeric_value__lte=int(float(operation[:2])))
+        return unit.filter(characteristic__numeric_value__lte=int(float(operation[2:])))
     elif operation.startswith("=>") or operation.startswith(">="):
-        return unit.filter(characteristic__numeric_value__gte=int(float(operation[:2])))
+        return unit.filter(characteristic__numeric_value__gte=int(float(operation[2:])))
     elif operation.startswith(">"):
-        return unit.filter(characteristic__numeric_value__gt=int(float(operation[:1])))
+        return unit.filter(characteristic__numeric_value__gt=int(float(operation[1:])))
     elif operation.startswith("<"):
-        return unit.filter(characteristic__numeric_value__lt=int(float(operation[:1])))
+        return unit.filter(characteristic__numeric_value__lt=int(float(operation[1:])))
     elif operation.startswith("="):
-        return unit.filter(characteristic__numeric_value__gt=int(float(operation[:1])))
+        return unit.filter(characteristic__numeric_value=int(float(operation[1:])))
     return unit
 
 
@@ -105,5 +105,8 @@ def process_search(data: List[dict], limit=10, offset=0) -> List[dict]:
             # add translate
             continue
         else:
-            qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs[offset: offset + limit]]
+            if typ.startswith("*"):
+                qs = qs.filter(unit_characteristics__in=val)
+            else:
+                qs = qs.filter(characteristics__in=val)
+    return [x.serialize_self() for x in qs[offset : offset + limit]]
