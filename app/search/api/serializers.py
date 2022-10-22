@@ -1,4 +1,6 @@
 from rest_framework import serializers
+from django.core.validators import MinLengthValidator, MinValueValidator
+
 
 
 class SearchSerializer(serializers.Serializer):
@@ -31,3 +33,16 @@ class HintRequestSerializer(serializers.Serializer):
 class HintResponseSerializer(serializers.Serializer):
     type = serializers.CharField()
     content = serializers.CharField()
+
+
+class AutoCompleteRequestSerializer(serializers.Serializer):
+    content = serializers.CharField(validators=[MinLengthValidator(3)])
+
+
+class AutoCompleteSerializerNode(serializers.Serializer):
+    coordinate = serializers.IntegerField(validators=[MinValueValidator(0)])
+    value = HintResponseSerializer()
+
+
+class AutoCompleteResponseSerializer(serializers.Serializer):
+    nodes = serializers.ListField(child=AutoCompleteSerializerNode())
