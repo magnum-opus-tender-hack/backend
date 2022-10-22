@@ -52,7 +52,7 @@ class Product(models.Model):
     id = models.IntegerField(
         "ID CTE", primary_key=True, unique=True, blank=False, null=False, db_index=True
     )
-    name = models.TextField("Название CTE", unique=True, blank=False)
+    name = models.TextField("Название CTE", blank=False)
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )

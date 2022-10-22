@@ -14,6 +14,7 @@ from search.api.serializers import (
     AutoCompleteResponseSerializer,
 )
 from search.models import Product
+from search.services.colors import group
 from search.services.search import process_search
 from search.services.autocomplete_schema import autocomplete_schema
 
@@ -32,10 +33,13 @@ class SearchApi(APIView):
         serializer = SearchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(
-            process_search(
+            group(
+                process_search(
+                    serializer.data["body"],
+                    serializer.data["limit"],
+                    serializer.data["offset"],
+                ),
                 serializer.data["body"],
-                serializer.data["limit"],
-                serializer.data["offset"],
             ),
             status=status.HTTP_200_OK,
         )

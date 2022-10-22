@@ -57,7 +57,6 @@ def apply_qs_search(text: str):
             | Product.objects.filter(name__unaccent__icontains=word)
         )
     products = products.order_by("-score")
-    print(products)
     return products
 
 
