@@ -28,6 +28,15 @@ def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: s
     return unit
 
 
+def apply_qs_search(qs: Product.objects, text: str):
+    for st in [".", ",", "!", "?"]:
+        text = text.replace(st, " ")
+    text = text.split()
+    for word in text:
+        qs = qs.filter(name__unaccent__trigram_similar=word) | qs.filter(name__unaccent__icontains=word)
+    return qs
+
+
 def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
     prep_data = []
     prep_dict = {}
@@ -98,7 +107,7 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
         typ = x["type"]
         val = x["value"]
         if typ == "Name":
-            qs = qs.filter(name__unaccent__trigram_similar=val)
+            qs = apply_qs_search(qs, val)
         elif typ == "Category":
             qs = qs.filter(category__name__unaccent__trigram_similar=val)
         elif typ == "Unknown":
@@ -108,7 +117,7 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 val = "".join(translate_ru_en(val))
             type = get_hints(val)
             if type == "Name":
-                qs = qs.filter(name__unaccent__trigram_similar=val)
+                qs = apply_qs_search(qs, val)
             elif type == "Category":
                 qs = qs.filter(category__name__unaccent__trigram_similar=val)
             elif type == "Unknown":
@@ -123,4 +132,4 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 qs = qs.filter(unit_characteristics__in=val)
             else:
                 qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs[offset:offset+limit]]
+    return [x.serialize_self() for x in qs[offset : offset + limit]]
