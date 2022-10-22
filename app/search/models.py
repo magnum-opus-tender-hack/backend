@@ -49,6 +49,8 @@ class Product(models.Model):
         Category, related_name="products", on_delete=models.CASCADE
     )
 
+    # score = models.IntegerField(default=0)
+
     def __str__(self):
         return str(self.name)
 
@@ -56,13 +58,17 @@ class Product(models.Model):
         return {
             "name": self.name,
             "characteristic": [
-                x.serialize_self() for x in self.characteristics.objects.all()
+                x.characteristic.serialize_self() for x in self.characteristics.all()
             ]
-            + [x.serialize_self() for x in self.unit_characteristics.objects.all()],
+            + [
+                x.characteristic.serialize_self()
+                for x in self.unit_characteristics.all()
+            ],
         }
 
     class Meta:
         db_table = "product"
+        # ordering = ["score"]
 
 
 class ProductCharacteristic(models.Model):

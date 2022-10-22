@@ -60,6 +60,7 @@ DJANGO_APPS = [
     "django.contrib.humanize",
     "django.contrib.admin",
     "django.forms",
+    "django.contrib.postgres",
 ]
 THIRD_PARTY_APPS = ["rest_framework", "corsheaders", "drf_yasg"]
 

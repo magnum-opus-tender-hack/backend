@@ -2,9 +2,19 @@ from rest_framework import serializers
 from django.core.validators import MinLengthValidator, MinValueValidator
 
 
+class QueryFilterSerializer(serializers.Serializer):
+    value = serializers.CharField(max_length=100)
+    type = serializers.CharField(max_length=100)
+
+    def create(self, validated_data):
+        raise NotImplementedError
+
+    def update(self, instance, validated_data):
+        raise NotImplementedError
+
 
 class SearchSerializer(serializers.Serializer):
-    body = serializers.CharField(max_length=200)
+    body = serializers.ListSerializer(child=QueryFilterSerializer())
 
     def create(self, validated_data):
         raise NotImplementedError
