@@ -8,37 +8,37 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
     name_exclude = [x["value"] for x in exclude if x["type"] == "Name"]
     category_exclude = [x["value"] for x in exclude if x["type"] == "Category"]
     schema = []
+    if not category_exclude:
+        schema.extend(
+            [
+                {
+                    "coordinate": cat["name"].replace("ё", "е").lower().index(val.lower()),
+                    "value": {"type": "Category", "value": cat["name"]},
+                }
+                for cat in Category.objects.filter(name__unaccent__icontains=val)[
+                    :10
+                ].values("name")
+            ]
+        )
     if not name_exclude:
         schema.extend(
             [
                 {
-                    "coordinate": product["name"].lower().index(val.lower()),
+                    "coordinate": product["name"].replace("ё", "е").lower().index(val.lower()),
                     "value": {
                         "type": "Name",
                         "value": product["name"],
                     },
                 }
                 for product in Product.objects.filter(name__unaccent__icontains=val)[
-                    :20
-                ].values("name")
-            ]
-        )
-    if not category_exclude:
-        schema.extend(
-            [
-                {
-                    "coordinate": cat["name"].lower().index(val.lower()),
-                    "value": {"type": "Category", "value": cat["name"]},
-                }
-                for cat in Category.objects.filter(name__unaccent__icontains=val)[
-                    :20
+                    :30
                 ].values("name")
             ]
         )
     schema.extend(
         [
             {
-                "coordinate": char["value"].lower().index(val.lower()),
+                "coordinate": char["value"].replace("ё", "е").lower().index(val.lower()),
                 "value": {"type": char["name"], "value": char["value"]},
             }
             for char in Characteristic.objects.filter(value__unaccent__icontains=val)[
@@ -49,12 +49,12 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
     schema.extend(
         [
             {
-                "coordinate": char["value"].lower().index(val.lower()),
+                "coordinate": char["name"].lower().replace("ё", "е").index(val.lower()),
                 "value": {
                     "type": char["name"] + "_numeric",
-                    "value": char["value"]
+                    "value": char["name"]
                 }
-            } for char in UnitCharacteristic.objects.filter(value__unaccent__icontains=val)[:20].values("name", "value")
+            } for char in UnitCharacteristic.objects.filter(name__unaccent__icontains=val)[:20].values("name", "value")
         ]
     )
     return schema

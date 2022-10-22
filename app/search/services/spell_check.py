@@ -19,6 +19,9 @@ def spell_check_en(word: str) -> str:
     return res
 
 
+morph = pymorphy2.MorphAnalyzer()
+
+
 def lemmatize(word):
-    p = pymorphy2.MorphAnalyzer().parse(word)[0]
+    p = morph.parse(word)[0]
     return p.normal_form

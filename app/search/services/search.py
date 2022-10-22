@@ -43,7 +43,7 @@ def _clean_text(text: str) -> List[str]:
     text = text.split()
     re = []
     for word in text:
-        re.append(lemmatize(word))
+        re.append(word)
     return re
 
 
@@ -62,35 +62,76 @@ def apply_qs_search(text: str):
 
 def apply_all_qs_search(orig_qs, text: str):
     # words
-    qs = apply_qs_search(text)
     text = _clean_text(text)
 
-    # categories
-    cats = Category.objects.none()
-    for word in text:
-        cats = cats | cats.filter(name__icontains=word)
-    qs = Product.objects.filter(category__in=cats).order_by("-score") | qs
+    u_qs = None
 
-    # characteristics
-    chars = Characteristic.objects.none()
-    for word in text:
-        chars = (
-            chars
-            | Characteristic.objects.filter(
-                value__icontains=word,
-            )
-            | Characteristic.objects.filter(
-                value__unaccent__trigram_similar=word,
-            )
-        )
-    qs = (
-        Product.objects.filter(characteristics__characteristic__in=chars).order_by(
-            "-score"
-        )
-        | qs
-    )
+    # try to find Unit characteristics
+    if any(x.isnumeric() for x in text):
+        u_qs = ProductUnitCharacteristic.objects.filter()
+        for i in range(len(text)):
+            el = text[i]
+            if el.isnumeric():
+                if i == len(text) - 1:
+                    if ProductUnitCharacteristic.objects.filter(
+                        characteristic__name__icontains=text[i - 1]
+                    ).exists():
+                        unit = ProductUnitCharacteristic.objects.filter(
+                            characteristic__name__icontains=text[i - 1]
+                        )
+                        u_qs = u_qs & process_unit_operation(unit, f"={text[i]}")
+                        del text[i]
+                        del text[i - 1]
+                        break
+                elif len(text) - 1 > i >= 1:
+                    if ProductUnitCharacteristic.objects.filter(
+                        characteristic__name__icontains=text[i - 1]
+                    ).exists():
+                        unit = ProductUnitCharacteristic.objects.filter(
+                            characteristic__name__icontains=text[i - 1]
+                        )[0]
+                        u_qs = u_qs & process_unit_operation(unit, f"={text[i]}")
+                        del text[i]
+                        del text[i - 1]
+                        break
+                    elif ProductUnitCharacteristic.objects.filter(
+                        characteristic__name__icontains=text[i + 1]
+                    ).exists():
+                        unit = UnitCharacteristic.objects.filter(
+                            ProductUnitCharacteristic=text[i + 1]
+                        )[0]
+                        u_qs = u_qs & process_unit_operation(unit, f"={text[i]}")
+                        del text[i]
+                        del text[i + 1]
+                        break
+                else:
+                    if ProductUnitCharacteristic.objects.filter(
+                        characteristic__name__icontains=text[i + 1]
+                    ).exists():
+                        unit = ProductUnitCharacteristic.objects.filter(
+                            characteristic__name__icontains=text[i + 1]
+                        )[0]
+                        u_qs = u_qs & process_unit_operation(unit, f"={text[i]}")
+                        del text[i]
+                        del text[i + 1]
+                        break
 
-    return qs & orig_qs
+    prod = Product.objects.filter()
+    for word in text:
+        car = ProductCharacteristic.objects.filter(
+            characteristic__value__icontains=word,
+        )
+        qs = (
+            Product.objects.filter(name__icontains=word)
+            | Product.objects.filter(name__unaccent__trigram_similar=word)
+            | Product.objects.filter(category__name__icontains=word)
+            | Product.objects.filter(characteristics__in=car)
+        )
+        prod = prod & qs
+        if u_qs:
+            prod = prod & Product.objects.filter(unit_characteristics__in=u_qs)
+
+    return prod
 
 
 def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
@@ -174,11 +215,9 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
             qs = qs & apply_qs_search(val)
             qs = qs.order_by("-score")
         elif typ == "All":
-            qs = apply_all_qs_search(qs, val)
+            qs = apply_all_qs_search(qs, val) & qs
         elif typ == "Category":
-            qs = qs.filter(category__name__unaccent__trigram_similar=val) | qs.filter(
-                category__name__icontains=val
-            )
+            qs = qs.filter(category__name__icontains=val)
             qs = qs.order_by("-score")
         elif typ == "Characteristic":
             char = ProductCharacteristic.objects.filter(product__in=qs)

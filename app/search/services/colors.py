@@ -18,7 +18,7 @@ def group(data: List[Dict], search_fields_d: List[Dict]) -> List[Dict]:
                 else:
                     re[field] = []
                     re[field].append(
-                        [x["type"] for x in search_fields_dict if x["value"] == field][
+                        [x["type"] for x in search_fields_dict if x["value"].lower() == field][
                             0
                         ]
                     )
