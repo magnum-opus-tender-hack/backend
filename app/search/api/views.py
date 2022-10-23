@@ -15,7 +15,7 @@ from search.api.serializers import (
 )
 from search.models import Product
 from search.services.colors import group
-from search.services.search import process_search
+from search.services.search.main import process_search
 from search.services.autocomplete_schema import autocomplete_schema
 
 from search.services.hints import get_hints

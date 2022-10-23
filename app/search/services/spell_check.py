@@ -23,5 +23,8 @@ morph = pymorphy2.MorphAnalyzer()
 
 
 def lemmatize(word):
-    p = morph.parse(word)[0]
-    return p.normal_form
+    return morph.parse(word)[0].normal_form
+
+
+def pos(word):
+    return morph.parse(word)[0].tag.POS

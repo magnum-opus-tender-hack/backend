@@ -8,6 +8,17 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
     name_exclude = [x["value"] for x in exclude if x["type"] == "Name"]
     category_exclude = [x["value"] for x in exclude if x["type"] == "Category"]
     schema = []
+    schema.extend(
+        [
+            {
+                "coordinate": char["name"].lower().replace("ё", "е").index(val.lower()),
+                "value": {"type": char["name"] + "_numeric", "value": char["name"]},
+            }
+            for char in UnitCharacteristic.objects.filter(
+                name__unaccent__icontains=val
+            )[:20].values("name", "value")
+        ]
+    )
     if not category_exclude:
         schema.extend(
             [
@@ -62,17 +73,6 @@ def autocomplete_schema(val: str, exclude: List[Dict]):
             )
             .distinct()[:20]
             .values("name", "value")
-        ]
-    )
-    schema.extend(
-        [
-            {
-                "coordinate": char["name"].lower().replace("ё", "е").index(val.lower()),
-                "value": {"type": char["name"] + "_numeric", "value": char["name"]},
-            }
-            for char in UnitCharacteristic.objects.filter(
-                name__unaccent__icontains=val
-            )[:20].values("name", "value")
         ]
     )
     return schema
