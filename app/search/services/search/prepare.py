@@ -2,11 +2,15 @@ from typing import List, Dict
 
 from rest_framework.exceptions import ValidationError
 
-from search.models import Characteristic, ProductCharacteristic, ProductUnitCharacteristic, UnitCharacteristic
+from search.models import (
+    Characteristic,
+    ProductCharacteristic,
+    ProductUnitCharacteristic,
+    UnitCharacteristic,
+)
 from search.services.hints import get_hints
 from search.services.search.methods import process_unit_operation
-)
-from search.services.spell_check import spell_check_ru as spell_check
+from search.services.spell_check import spell_check
 
 
 def apply_union(data: List[Dict]) -> List[Dict]:

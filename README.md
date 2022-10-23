@@ -73,7 +73,7 @@ $ ./app/manage.py runserver
     },
     {
       "value": "каучук",
-      "type": "Матерьял"
+      "type": "Материал"
     },
     {
       "value": "синий",

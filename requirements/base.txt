@@ -13,3 +13,8 @@ celery==5.2.7
 
 pyspellchecker==0.7.0
 pymorphy2
+
+transformers
+torch
+scipy
+numpy

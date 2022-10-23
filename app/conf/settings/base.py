@@ -216,3 +216,4 @@ REST_FRAMEWORK = {
 
 # django-cors-headers
 CORS_ALLOW_ALL_ORIGINS = True
+YANDEX_DICT_API_KEY = env.str('YANDEX_DICT')

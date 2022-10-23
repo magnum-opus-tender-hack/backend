@@ -21,7 +21,7 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
             qs = qs & apply_qs_search(val)
             qs = qs.order_by("-score")
         elif typ == "All":
-            qs = apply_all_qs_search(qs, val) & qs
+            qs = apply_all_qs_search(val) & qs
         elif typ == "Category":
             qs = apply_qs_category(qs, val)
             qs = qs.order_by("-score")
@@ -35,4 +35,4 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 qs = qs.filter(unit_characteristics__in=val)
             else:
                 qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs.distinct()[offset: offset + limit]]
+    return [x.serialize_self() for x in qs.distinct()[offset : offset + limit]]

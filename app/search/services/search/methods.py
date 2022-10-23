@@ -1,11 +1,14 @@
+from functools import cache
 from typing import List
+
+from django.utils.text import slugify
 
 from search.models import (
     Product,
     ProductCharacteristic,
     ProductUnitCharacteristic,
 )
-from search.services.spell_check import pos
+from search.services.spell_check import pos, spell_check
 
 
 def _clean_text(text: str) -> List[str]:
@@ -13,9 +16,11 @@ def _clean_text(text: str) -> List[str]:
         text = text.replace(st, " ")
     text = text.split()
     functors_pos = {"INTJ", "PRCL", "CONJ", "PREP"}  # function words
-    return [word for word in text if pos(word) not in functors_pos]
+    text = [word for word in text if pos(word) not in functors_pos]
+    return [spell_check(x) for x in text]
 
 
+@cache
 def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: str):
     if operation.startswith("<=") or operation.startswith("=<"):
         return unit.filter(
@@ -41,20 +46,20 @@ def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: s
     return unit
 
 
+@cache
 def apply_qs_search(text: str):
     text = _clean_text(text)
-    products = Product.objects.none()
+    qs = Product.objects.filter()
     for word in text:
-        products = (
-            products
-            | Product.objects.filter(name__unaccent__icontains=word)
-            | Product.objects.filter(name__unaccent__trigram_similar=word)
+        qs = qs.filter(name__unaccent__trigram_similar=word) | qs.filter(
+            name__unaccent__icontains=word
         )
-    products = products.order_by("-score")
+    products = qs.order_by("-score")
     return products
 
 
-def apply_all_qs_search(orig_qs, text: str):
+@cache
+def apply_all_qs_search(text: str):
     # words
     text = _clean_text(text)
 
@@ -105,9 +110,23 @@ def apply_all_qs_search(orig_qs, text: str):
         )
         qs = (
             Product.objects.filter(name__icontains=word)
+            | Product.objects.filter(name__trigram_similar=word)
             | Product.objects.filter(category__name__icontains=word)
             | Product.objects.filter(characteristics__in=car)
         )
+        if any(
+            x in word
+            for x in "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+        ):
+            qs = qs | Product.objects.filter(
+                name__icontains=word.translate(
+                    str.maketrans(
+                        "абвгдеёжзийклмнопрстуфхцчшщъыьэюяАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ",
+                        "abvgdeejzijklmnoprstufhzcss_y_euaABVGDEEJZIJKLMNOPRSTUFHZCSS_Y_EUA",
+                    )
+                )
+            )
+        print(qs)
         prod = prod & qs
 
         if u_qs:
@@ -116,11 +135,13 @@ def apply_all_qs_search(orig_qs, text: str):
     return prod
 
 
+@cache
 def apply_qs_category(qs, name: str):
     qs = qs.filter(category__name__icontains=name)
     return qs
 
 
+@cache
 def appy_qs_characteristic(qs, name: str):
     char = ProductCharacteristic.objects.filter(product__in=qs)
     char = char.filter(characteristic__value__icontains=name) | char.filter(
