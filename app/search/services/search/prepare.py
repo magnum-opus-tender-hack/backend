@@ -27,9 +27,7 @@ def apply_union(data: List[Dict]) -> List[Dict]:
             prep_data.append(
                 {
                     "type": dat["type"],
-                    "value": spell_check(
-                        dat["value"],
-                    ),
+                    "value": dat["value"],
                 }
             )
         elif x["type"] == "Unknown":

@@ -10,9 +10,29 @@ from search.services.search.prepare import apply_union
 from search.models import Product
 
 
-def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
-    prep_data = apply_union(data)
-    # ----------------------------------- apply filters on QuerySet -------------------------------------------------- #
+def call(prep_data):
+    if len(prep_data) == 1:
+        typ = prep_data[0]["type"]
+        val = prep_data[0]["value"]
+        if typ == "Name":
+            return apply_qs_search(val).order_by("-score")
+        elif typ == "All":
+            return apply_all_qs_search(val).order_by("-score")
+        elif typ == "Category":
+            return Product.objects.filter(category__name__icontains=val).order_by(
+                "-score"
+            )
+        elif typ == "Characteristic":
+            return appy_qs_characteristic(Product.objects.filter(), val).order_by(
+                "-score"
+            )
+        elif typ == "Unknown":
+            return []
+        else:
+            if typ.startswith("*"):
+                return Product.objects.filter(unit_characteristics__in=val)
+            else:
+                return Product.objects.filter(characteristics__in=val)
     qs = Product.objects.filter()
     for x in prep_data:
         typ = x["type"]
@@ -35,4 +55,9 @@ def process_search(data: List[dict], limit=5, offset=0) -> List[dict]:
                 qs = qs.filter(unit_characteristics__in=val)
             else:
                 qs = qs.filter(characteristics__in=val)
-    return [x.serialize_self() for x in qs.distinct()[offset : offset + limit]]
+    return []
+
+
+def process_search(body: List[dict], limit=5, offset=0) -> List[dict]:
+    prep_data = apply_union(body)
+    return call(prep_data)[offset : offset + limit]

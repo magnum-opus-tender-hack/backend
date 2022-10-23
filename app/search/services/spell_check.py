@@ -5,7 +5,7 @@ speller_ru = SpellChecker(language="ru")
 speller_eng = SpellChecker(language="en")
 
 
-def spell_check_ru(word: str) -> str:
+def spell_check(word: str) -> str:
     res = speller_ru.correction(word)
     if not res or not len(res):
         return word

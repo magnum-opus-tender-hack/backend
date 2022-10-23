@@ -1,7 +1,4 @@
-from functools import cache
 from typing import List
-
-from django.utils.text import slugify
 
 from search.models import (
     Product,
@@ -12,15 +9,20 @@ from search.services.spell_check import pos, spell_check
 
 
 def _clean_text(text: str) -> List[str]:
+
     for st in [".", ",", "!", "?"]:
         text = text.replace(st, " ")
+
     text = text.split()
     functors_pos = {"INTJ", "PRCL", "CONJ", "PREP"}  # function words
+
     text = [word for word in text if pos(word) not in functors_pos]
-    return [spell_check(x) for x in text]
+
+    text = [spell_check(x) for x in text]
+
+    return text
 
 
-@cache
 def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: str):
     if operation.startswith("<=") or operation.startswith("=<"):
         return unit.filter(
@@ -46,7 +48,6 @@ def process_unit_operation(unit: ProductUnitCharacteristic.objects, operation: s
     return unit
 
 
-@cache
 def apply_qs_search(text: str):
     text = _clean_text(text)
     qs = Product.objects.filter()
@@ -58,7 +59,6 @@ def apply_qs_search(text: str):
     return products
 
 
-@cache
 def apply_all_qs_search(text: str):
     # words
     text = _clean_text(text)
@@ -103,16 +103,22 @@ def apply_all_qs_search(text: str):
                         del text[i]
                         break
 
-    prod = Product.objects.filter()
+    if u_qs:
+        prod = Product.objects.filter(unit_characteristics__in=u_qs)
+    else:
+        prod = Product.objects.filter()
+
     for word in text:
         car = ProductCharacteristic.objects.filter(
             characteristic__value__icontains=word,
+        ) | ProductCharacteristic.objects.filter(
+            characteristic__value__trigram_similar=word,
         )
         qs = (
             Product.objects.filter(name__icontains=word)
-            | Product.objects.filter(name__trigram_similar=word)
-            | Product.objects.filter(category__name__icontains=word)
             | Product.objects.filter(characteristics__in=car)
+            | Product.objects.filter(category__name__icontains=word)
+            | Product.objects.filter(name__trigram_similar=word)
         )
         if any(
             x in word
@@ -126,22 +132,16 @@ def apply_all_qs_search(text: str):
                     )
                 )
             )
-        print(qs)
         prod = prod & qs
-
-        if u_qs:
-            prod = prod & Product.objects.filter(unit_characteristics__in=u_qs)
 
     return prod
 
 
-@cache
 def apply_qs_category(qs, name: str):
     qs = qs.filter(category__name__icontains=name)
     return qs
 
 
-@cache
 def appy_qs_characteristic(qs, name: str):
     char = ProductCharacteristic.objects.filter(product__in=qs)
     char = char.filter(characteristic__value__icontains=name) | char.filter(

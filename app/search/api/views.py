@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from search.api.serializers import HintRequestSerializer
+from search.api.serializers import HintRequestSerializer, ProductSerializer
 
 from search.api.serializers import (
     SearchSerializer,
@@ -33,14 +33,14 @@ class SearchApi(APIView):
         serializer = SearchSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return Response(
-            group(
+            ProductSerializer(
                 process_search(
                     serializer.data["body"],
                     serializer.data["limit"],
                     serializer.data["offset"],
                 ),
-                serializer.data["body"],
-            ),
+                many=True,
+            ).data,
             status=status.HTTP_200_OK,
         )
 

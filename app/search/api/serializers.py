@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.core.validators import MinLengthValidator, MinValueValidator
 
+from search.models import Product, UnitCharacteristic, Characteristic
+
 
 class QueryFilterSerializer(serializers.Serializer):
     value = serializers.CharField(max_length=100)
@@ -86,3 +88,38 @@ class AutoCompleteResponseSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         raise NotImplementedError
+
+
+class CharacteristicSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ["name", "value"]
+        model = Characteristic
+
+
+class UnitCharacteristicSerializer(serializers.ModelSerializer):
+    value = serializers.SerializerMethodField("get_value_n")
+
+    def get_value_n(self, obj):
+        return obj.num_value
+
+    class Meta:
+        fields = ["name", "value", "unit"]
+        model = UnitCharacteristic
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    characteristic = serializers.SerializerMethodField("get_characteristic_n")
+
+    def get_characteristic_n(self, obj: Product):
+        return (
+            CharacteristicSerializer(
+                Characteristic.objects.filter(products__product=obj), many=True
+            ).data
+            + UnitCharacteristicSerializer(
+                UnitCharacteristic.objects.filter(products__product=obj), many=True
+            ).data
+        )
+
+    class Meta:
+        fields = ["id", "name", "score", "characteristic"]
+        model = Product

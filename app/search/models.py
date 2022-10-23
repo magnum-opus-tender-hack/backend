@@ -34,6 +34,14 @@ class UnitCharacteristic(models.Model):
             "unit": self.unit,
         }
 
+    @property
+    def num_value(self):
+        return (
+            self.numeric_value_min
+            if self.numeric_value_min == self.numeric_value_max
+            else f"{self.numeric_value_min}:{self.numeric_value_max}"
+        )
+
     class Meta:
         db_table = "unit_characteristic"
 
